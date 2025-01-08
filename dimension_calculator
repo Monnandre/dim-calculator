@@ -1,0 +1,70 @@
+import re
+from collections import defaultdict
+
+class Dimension:
+    def __init__(self, dim_str="", M=0, L=0, T=0):
+        if dim_str:
+            res = self.parse_string(dim_str)
+            self.M = res["M"]
+            self.L = res["L"]
+            self.T = res["T"]
+        else:
+            self.M = M
+            self.L = L
+            self.T = T
+    
+    def parse_string(self, s):
+        matches = re.findall(r'([MLT])([-+]?\d*)?', s)
+        result = defaultdict(int)
+
+        for letter, number in matches:
+            # If no number is specified, treat it as 1
+            value = int(number) if number else 1
+            result[letter] += value
+        
+        # Convert defaultdict to a regular dict for cleaner output
+        return result
+
+    def __add__(self, other):
+        raise TypeError(f"Cannot add Dimension and {type(other).__name__}")
+    
+    def __sub__(self, other):
+        raise TypeError(f"Cannot substrat {type(other).__name__} from Dimension")
+
+    def __mul__(self, other):
+        if not isinstance(other, Dimension):
+            raise TypeError(f"Cannot multiply Dimension and {type(other).__name__}")
+        
+        new_M = self.M  + other.M
+        new_L = self.L  + other.L
+        new_T = self.T  + other.T
+
+        return Dimension(M=new_M, L=new_L, T=new_T)
+    
+    def __truediv__(self, other):
+        if not isinstance(other, Dimension):
+            raise TypeError(f"Cannot divide Dimension by {type(other).__name__}")
+        
+        new_M = self.M  - other.M
+        new_L = self.L  - other.L
+        new_T = self.T  - other.T
+
+        return Dimension(M=new_M, L=new_L, T=new_T)
+
+    def __repr__(self):
+        dim_str = ""
+        if self.M:
+            dim_str += f'M^({self.M})'
+        if self.L:
+            dim_str += f'L^({self.L})'
+        if self.T:
+            dim_str += f'T({self.T})'
+        return dim_str
+
+if __name__ == "__main__":
+    # Example usage:
+    energie = Dimension(M=1, L=2, T=-2)
+    temps = Dimension(T=1)
+    
+    result = energie / temps
+    print(f'Result: {result}')
